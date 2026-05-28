@@ -22,21 +22,36 @@ export default function LikeButton() {
       .catch(() => setLoading(false));
   }, []);
 
-  const handleLike = async () => {
-    if (liked) return;
-
-    try {
-      const res = await fetch(
-        `https://api.countapi.xyz/hit/${NAMESPACE}/${KEY}`
-      );
-      const data = await res.json();
-      setCount(data.value);
+  const handleClick = async () => {
+    if (liked) {
+      // Unlike
+      setLiked(false);
+      localStorage.removeItem(STORAGE_KEY);
+      const newCount = Math.max(0, count - 1);
+      setCount(newCount);
+      // Try to sync with API
+      try {
+        await fetch(
+          `https://api.countapi.xyz/hit/${NAMESPACE}/${KEY}?amount=-1`
+        );
+      } catch {
+        // If sync fails, local state is still correct
+      }
+    } else {
+      // Like
       setLiked(true);
       localStorage.setItem(STORAGE_KEY, "true");
-    } catch {
-      // If API fails, still show as liked to prevent spam
-      setLiked(true);
-      localStorage.setItem(STORAGE_KEY, "true");
+      const newCount = count + 1;
+      setCount(newCount);
+      try {
+        const res = await fetch(
+          `https://api.countapi.xyz/hit/${NAMESPACE}/${KEY}`
+        );
+        const data = await res.json();
+        setCount(data.value);
+      } catch {
+        // Keep optimistic count if API fails
+      }
     }
   };
 
@@ -44,21 +59,18 @@ export default function LikeButton() {
 
   return (
     <button
-      onClick={handleLike}
-      disabled={liked}
+      onClick={handleClick}
       className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg border text-sm font-medium transition-all ${
         liked
-          ? "opacity-70 cursor-default"
-          : "hover:border-yellow-400 hover:bg-yellow-50 dark:hover:bg-yellow-900/20 cursor-pointer"
-      }`}
+          ? "border-yellow-300 bg-yellow-50 dark:bg-yellow-900/15 hover:border-yellow-400"
+          : "hover:border-yellow-300 hover:bg-yellow-50 dark:hover:bg-yellow-900/10"
+      } cursor-pointer`}
       style={{
-        borderColor: liked ? "var(--color-border)" : "var(--color-border)",
-        color: liked ? "var(--color-text-secondary)" : "var(--color-text)",
+        color: liked ? "#b45309" : "var(--color-text-secondary)",
       }}
-      title={liked ? "已点赞" : "点个赞吧"}
     >
       <svg
-        className={`w-5 h-5 ${liked ? "text-yellow-500" : ""}`}
+        className={`w-5 h-5 transition-colors ${liked ? "text-yellow-500" : ""}`}
         fill={liked ? "currentColor" : "none"}
         viewBox="0 0 24 24"
         stroke="currentColor"
@@ -68,9 +80,9 @@ export default function LikeButton() {
       </svg>
       <span>{liked ? "已点赞" : "觉得有用？点个赞支持一下吧~"}</span>
       <span
-        className="ml-1 text-xs px-1.5 py-0.5 rounded-full"
+        className="ml-1 text-xs px-1.5 py-0.5 rounded-full transition-colors"
         style={{
-          backgroundColor: liked ? "var(--color-accent)" : "var(--color-bg)",
+          backgroundColor: liked ? "#f59e0b" : "var(--color-bg)",
           color: liked ? "white" : "var(--color-text-secondary)",
           border: liked ? "none" : "1px solid var(--color-border)",
         }}

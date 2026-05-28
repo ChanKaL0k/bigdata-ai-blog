@@ -26,8 +26,8 @@ const topics = [
 ---
 
 <BaseLayout>
-  <section class="max-w-6xl mx-auto px-4 pt-20 pb-16">
-    <div class="flex justify-end mb-6">
+  <section class="max-w-6xl mx-auto px-4 pt-4 pb-16">
+    <div class="flex justify-end mb-4">
       <LikeButton client:load />
     </div>
 
@@ -43,7 +43,6 @@ const topics = [
       </p>
     </div>
 
-    <!-- Topic Grid -->
     <div class="grid grid-cols-2 md:grid-cols-3 gap-4 mb-16">
       {topics.map((t) => (
         <a
@@ -58,7 +57,6 @@ const topics = [
       ))}
     </div>
 
-    <!-- Latest Posts -->
     <h2 class="text-2xl font-bold mb-6">最新文章</h2>
     {latestPosts.length > 0 ? (
       <div class="grid gap-4 md:grid-cols-2">
