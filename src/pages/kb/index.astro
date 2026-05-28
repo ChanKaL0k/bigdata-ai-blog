@@ -2,10 +2,11 @@
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import { getCollection } from "astro:content";
 
-const kbArticles = await getCollection("kb");
-const topics = [
-  ...new Set(kbArticles.map((a) => a.data.topic)),
-].sort();
+const kbArticles = (await getCollection("kb"))
+  .filter((a) => !a.data.draft)
+  .sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
+
+const topics = [...new Set(kbArticles.map((a) => a.data.topic))].sort();
 
 const topicMeta: Record<string, { name: string; icon: string; desc: string }> = {
   spark: { name: "Spark", icon: "⚡", desc: "分布式计算引擎 Spark 核心概念、调优与实践" },
@@ -20,27 +21,68 @@ const topicMeta: Record<string, { name: string; icon: string; desc: string }> = 
 <BaseLayout>
   <div class="max-w-6xl mx-auto px-4 pt-12 pb-16">
     <h1 class="text-3xl font-bold mb-2">知识库</h1>
-    <p class="mb-10" style="color: var(--color-text-secondary);">
-      按主题组织的系统化学习笔记
+    <p class="mb-6" style="color: var(--color-text-secondary);">
+      按主题组织的系统化学习笔记，共 {kbArticles.length} 篇文章
     </p>
 
-    <div class="grid gap-4 md:grid-cols-2">
-      {topics.map((topic) => {
-        const meta = topicMeta[topic] || { name: topic, icon: "📄", desc: "" };
-        const count = kbArticles.filter((a) => a.data.topic === topic).length;
-        return (
-          <a
-            href={`/kb/${topic}`}
-            class="p-6 rounded-xl border hover:shadow-md transition-all hover:-translate-y-0.5"
-            style="border-color: var(--color-border); background-color: var(--color-bg-secondary);"
-          >
-            <div class="text-2xl mb-2">{meta.icon}</div>
-            <div class="font-semibold text-lg mb-1">{meta.name}</div>
-            <div class="text-sm mb-3" style="color: var(--color-text-secondary);">{meta.desc}</div>
-            <div class="text-xs" style="color: var(--color-accent);">{count} 篇文章</div>
-          </a>
-        );
-      })}
+    <!-- Search Box -->
+    <div class="relative mb-8">
+      <input
+        type="text"
+        id="kb-search"
+        placeholder="搜索知识库文章..."
+        class="w-full px-4 py-3 pl-10 rounded-lg border text-base focus:outline-none focus:ring-2"
+        style="border-color: var(--color-border); background-color: var(--color-bg-secondary); color: var(--color-text);"
+      />
+      <svg class="absolute left-3 top-3.5 w-5 h-5" style="color: var(--color-text-secondary);" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+      </svg>
+    </div>
+
+    <!-- Search Results -->
+    <div id="search-results" class="hidden space-y-3 mb-10">
+      <h2 class="text-lg font-semibold mb-3">搜索结果</h2>
+      {kbArticles.map((article) => (
+        <a
+          href={`/kb/${article.data.topic}/${article.slug}`}
+          class="kb-article block p-4 rounded-lg border hover:shadow-sm transition-all"
+          style="border-color: var(--color-border); background-color: var(--color-bg-secondary);"
+          data-keywords={`${article.data.title} ${article.data.description} ${article.data.tags.join(" ")} ${article.data.topic}`}
+        >
+          <div class="flex items-center gap-2 mb-1">
+            <span class="text-xs px-2 py-0.5 rounded-full" style="background-color: var(--color-accent); color: white;">{article.data.topic}</span>
+            <span class="text-xs" style="color: var(--color-text-secondary);">{article.data.date.toLocaleDateString("zh-CN")}</span>
+          </div>
+          <div class="font-medium">{article.data.title}</div>
+          <div class="text-sm mt-1" style="color: var(--color-text-secondary);">{article.data.description}</div>
+        </a>
+      ))}
+      <p id="no-match" class="hidden text-center py-8" style="color: var(--color-text-secondary);">
+        没有找到匹配的文章
+      </p>
+    </div>
+
+    <!-- Topic Grid -->
+    <div id="topic-grid">
+      <h2 class="text-lg font-semibold mb-4">按主题浏览</h2>
+      <div class="grid gap-4 md:grid-cols-2">
+        {topics.map((topic) => {
+          const meta = topicMeta[topic] || { name: topic, icon: "📄", desc: "" };
+          const count = kbArticles.filter((a) => a.data.topic === topic).length;
+          return (
+            <a
+              href={`/kb/${topic}`}
+              class="topic-card p-6 rounded-xl border hover:shadow-md transition-all hover:-translate-y-0.5"
+              style="border-color: var(--color-border); background-color: var(--color-bg-secondary);"
+            >
+              <div class="text-2xl mb-2">{meta.icon}</div>
+              <div class="font-semibold text-lg mb-1">{meta.name}</div>
+              <div class="text-sm mb-3" style="color: var(--color-text-secondary);">{meta.desc}</div>
+              <div class="text-xs" style="color: var(--color-accent);">{count} 篇文章</div>
+            </a>
+          );
+        })}
+      </div>
     </div>
 
     {topics.length === 0 && (
@@ -48,3 +90,34 @@ const topicMeta: Record<string, { name: string; icon: string; desc: string }> = 
     )}
   </div>
 </BaseLayout>
+
+<script>
+  const input = document.getElementById("kb-search") as HTMLInputElement;
+  const results = document.getElementById("search-results")!;
+  const topicGrid = document.getElementById("topic-grid")!;
+  const articles = document.querySelectorAll(".kb-article");
+  const noMatch = document.getElementById("no-match")!;
+
+  input.addEventListener("input", () => {
+    const q = input.value.toLowerCase().trim();
+
+    if (!q) {
+      results.classList.add("hidden");
+      topicGrid.classList.remove("hidden");
+      return;
+    }
+
+    results.classList.remove("hidden");
+    topicGrid.classList.add("hidden");
+
+    let visible = 0;
+    articles.forEach((el) => {
+      const keywords = (el.getAttribute("data-keywords") || "").toLowerCase();
+      const match = keywords.includes(q);
+      (el as HTMLElement).style.display = match ? "block" : "none";
+      if (match) visible++;
+    });
+
+    noMatch.classList.toggle("hidden", visible > 0);
+  });
+</script>
