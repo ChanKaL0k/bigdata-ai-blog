@@ -2,8 +2,15 @@
 import BaseLayout from "../layouts/BaseLayout.astro";
 import { getCollection } from "astro:content";
 
-const latestPosts = (await getCollection("blog"))
+const blogPosts = (await getCollection("blog"))
   .filter((p) => !p.data.draft)
+  .map((p) => ({ ...p, type: "blog", url: `/blog/${p.slug}` }));
+
+const kbArticles = (await getCollection("kb"))
+  .filter((p) => !p.data.draft)
+  .map((p) => ({ ...p, type: "kb", url: `/kb/${p.data.topic}/${p.slug}` }));
+
+const latestPosts = [...blogPosts, ...kbArticles]
   .sort((a, b) => b.data.date.getTime() - a.data.date.getTime())
   .slice(0, 6);
 
@@ -52,11 +59,14 @@ const topics = [
       <div class="grid gap-4 md:grid-cols-2">
         {latestPosts.map((post) => (
           <a
-            href={`/blog/${post.slug}`}
+            href={post.url}
             class="p-5 rounded-xl border hover:shadow-md transition-all"
             style="border-color: var(--color-border); background-color: var(--color-bg-secondary);"
           >
-            <div class="text-xs mb-2" style="color: var(--color-accent);">
+            <div class="text-xs mb-2 flex items-center gap-2" style="color: var(--color-accent);">
+              <span class="px-1.5 py-0.5 rounded text-xs" style="background-color: var(--color-accent); color: white;">
+                {post.type === "blog" ? "博客" : "知识库"}
+              </span>
               {post.data.topic} &middot; {post.data.date.toLocaleDateString("zh-CN")}
             </div>
             <div class="font-semibold mb-1">{post.data.title}</div>
