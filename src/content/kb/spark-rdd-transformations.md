@@ -4,7 +4,7 @@ description: "Transformations vs Actions 的区别，窄依赖与宽依赖的判
 date: 2026-05-28
 tags: [spark, rdd, 算子]
 topic: spark
-order: 2
+order: 5
 ---
 
 理解 RDD 算子是掌握 Spark 的基础。算子分为 Transformation（转换）和 Action（动作）两类。
