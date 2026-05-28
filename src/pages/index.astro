@@ -1,0 +1,73 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { getCollection } from "astro:content";
+
+const latestPosts = (await getCollection("blog"))
+  .filter((p) => !p.data.draft)
+  .sort((a, b) => b.data.date.getTime() - a.data.date.getTime())
+  .slice(0, 6);
+
+const topics = [
+  { name: "Spark", slug: "spark", icon: "⚡", desc: "分布式计算引擎" },
+  { name: "Flink", slug: "flink", icon: "🌊", desc: "流批一体处理" },
+  { name: "Kafka", slug: "kafka", icon: "📨", desc: "消息队列与流平台" },
+  { name: "AI/ML", slug: "ai-ml", icon: "🧠", desc: "机器学习与深度学习" },
+  { name: "LLM", slug: "llm", icon: "🤖", desc: "大模型与 RAG" },
+  { name: "Engineering", slug: "engineering", icon: "🔧", desc: "数据工程实践" },
+];
+---
+
+<BaseLayout>
+  <section class="max-w-6xl mx-auto px-4 pt-20 pb-16">
+    <div class="text-center mb-16">
+      <h1 class="text-4xl md:text-5xl font-bold mb-4">
+        大数据开发
+        <span style="color: var(--color-accent);"> × </span>
+        AI 学习
+      </h1>
+      <p class="text-lg max-w-2xl mx-auto" style="color: var(--color-text-secondary);">
+        记录从数据工程师到 AI 开发者的成长之路。涵盖 Spark、Flink、Kafka 等大数据技术，
+        以及机器学习、大模型应用等 AI 领域的学习笔记与实践总结。
+      </p>
+    </div>
+
+    <!-- Topic Grid -->
+    <div class="grid grid-cols-2 md:grid-cols-3 gap-4 mb-16">
+      {topics.map((t) => (
+        <a
+          href={`/kb/${t.slug}`}
+          class="p-5 rounded-xl border hover:shadow-md transition-all hover:-translate-y-0.5"
+          style="border-color: var(--color-border); background-color: var(--color-bg-secondary);"
+        >
+          <div class="text-2xl mb-2">{t.icon}</div>
+          <div class="font-semibold mb-1">{t.name}</div>
+          <div class="text-xs" style="color: var(--color-text-secondary);">{t.desc}</div>
+        </a>
+      ))}
+    </div>
+
+    <!-- Latest Posts -->
+    <h2 class="text-2xl font-bold mb-6">最新文章</h2>
+    {latestPosts.length > 0 ? (
+      <div class="grid gap-4 md:grid-cols-2">
+        {latestPosts.map((post) => (
+          <a
+            href={`/blog/${post.slug}`}
+            class="p-5 rounded-xl border hover:shadow-md transition-all"
+            style="border-color: var(--color-border); background-color: var(--color-bg-secondary);"
+          >
+            <div class="text-xs mb-2" style="color: var(--color-accent);">
+              {post.data.topic} &middot; {post.data.date.toLocaleDateString("zh-CN")}
+            </div>
+            <div class="font-semibold mb-1">{post.data.title}</div>
+            <div class="text-sm" style="color: var(--color-text-secondary);">
+              {post.data.description}
+            </div>
+          </a>
+        ))}
+      </div>
+    ) : (
+      <p style="color: var(--color-text-secondary);">还没有文章，马上开始写第一篇吧！</p>
+    )}
+  </section>
+</BaseLayout>

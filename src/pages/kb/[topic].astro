@@ -1,0 +1,56 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { getCollection } from "astro:content";
+
+export async function getStaticPaths() {
+  const articles = await getCollection("kb");
+  const topics = [...new Set(articles.map((a) => a.data.topic))];
+  return topics.map((topic) => ({ params: { topic } }));
+}
+
+const { topic } = Astro.params;
+const articles = (await getCollection("kb"))
+  .filter((a) => a.data.topic === topic && !a.data.draft)
+  .sort((a, b) => a.data.order - b.data.order);
+
+const topicMeta: Record<string, { name: string; icon: string }> = {
+  spark: { name: "Spark", icon: "⚡" },
+  flink: { name: "Flink", icon: "🌊" },
+  kafka: { name: "Kafka", icon: "📨" },
+  "ai-ml": { name: "AI/ML", icon: "🧠" },
+  llm: { name: "LLM/大模型", icon: "🤖" },
+  engineering: { name: "工程实践", icon: "🔧" },
+};
+const meta = topicMeta[topic || ""] || { name: topic, icon: "📄" };
+---
+
+<BaseLayout>
+  <div class="max-w-4xl mx-auto px-4 pt-12 pb-16">
+    <div class="mb-8">
+      <a href="/kb" class="text-sm hover:underline" style="color: var(--color-accent);">&larr; 所有主题</a>
+      <h1 class="text-3xl font-bold mt-2">{meta.icon} {meta.name}</h1>
+    </div>
+
+    {articles.length > 0 ? (
+      <div class="space-y-3">
+        {articles.map((article, i) => (
+          <a
+            href={`/kb/${topic}/${article.slug}`}
+            class="flex items-start gap-4 p-4 rounded-lg border hover:shadow-sm transition-all"
+            style="border-color: var(--color-border); background-color: var(--color-bg-secondary);"
+          >
+            <span class="text-sm font-mono mt-0.5" style="color: var(--color-text-secondary);">
+              {String(i + 1).padStart(2, "0")}
+            </span>
+            <div>
+              <div class="font-medium">{article.data.title}</div>
+              <div class="text-sm" style="color: var(--color-text-secondary);">{article.data.description}</div>
+            </div>
+          </a>
+        ))}
+      </div>
+    ) : (
+      <p style="color: var(--color-text-secondary);">该主题下暂无文章。</p>
+    )}
+  </div>
+</BaseLayout>

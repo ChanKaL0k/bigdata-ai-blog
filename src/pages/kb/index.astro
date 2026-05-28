@@ -1,0 +1,50 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { getCollection } from "astro:content";
+
+const kbArticles = await getCollection("kb");
+const topics = [
+  ...new Set(kbArticles.map((a) => a.data.topic)),
+].sort();
+
+const topicMeta: Record<string, { name: string; icon: string; desc: string }> = {
+  spark: { name: "Spark", icon: "⚡", desc: "分布式计算引擎 Spark 核心概念、调优与实践" },
+  flink: { name: "Flink", icon: "🌊", desc: "流批一体处理框架 Flink 核心机制与实战" },
+  kafka: { name: "Kafka", icon: "📨", desc: "消息队列与流平台 Kafka 原理与最佳实践" },
+  "ai-ml": { name: "AI/ML", icon: "🧠", desc: "机器学习、深度学习基础与实践" },
+  llm: { name: "LLM/大模型", icon: "🤖", desc: "大模型应用、RAG、Agent 开发" },
+  engineering: { name: "工程实践", icon: "🔧", desc: "数据工程工具链与工程化实践" },
+};
+---
+
+<BaseLayout>
+  <div class="max-w-6xl mx-auto px-4 pt-12 pb-16">
+    <h1 class="text-3xl font-bold mb-2">知识库</h1>
+    <p class="mb-10" style="color: var(--color-text-secondary);">
+      按主题组织的系统化学习笔记
+    </p>
+
+    <div class="grid gap-4 md:grid-cols-2">
+      {topics.map((topic) => {
+        const meta = topicMeta[topic] || { name: topic, icon: "📄", desc: "" };
+        const count = kbArticles.filter((a) => a.data.topic === topic).length;
+        return (
+          <a
+            href={`/kb/${topic}`}
+            class="p-6 rounded-xl border hover:shadow-md transition-all hover:-translate-y-0.5"
+            style="border-color: var(--color-border); background-color: var(--color-bg-secondary);"
+          >
+            <div class="text-2xl mb-2">{meta.icon}</div>
+            <div class="font-semibold text-lg mb-1">{meta.name}</div>
+            <div class="text-sm mb-3" style="color: var(--color-text-secondary);">{meta.desc}</div>
+            <div class="text-xs" style="color: var(--color-accent);">{count} 篇文章</div>
+          </a>
+        );
+      })}
+    </div>
+
+    {topics.length === 0 && (
+      <p style="color: var(--color-text-secondary);">知识库还在建设中...</p>
+    )}
+  </div>
+</BaseLayout>

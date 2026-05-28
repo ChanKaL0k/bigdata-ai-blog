@@ -1,0 +1,37 @@
+---
+import BaseLayout from "../../../layouts/BaseLayout.astro";
+import { getCollection } from "astro:content";
+
+export async function getStaticPaths() {
+  const articles = await getCollection("kb");
+  return articles.map((article) => ({
+    params: { topic: article.data.topic, slug: article.slug },
+    props: { article },
+  }));
+}
+
+const { article } = Astro.props;
+const { Content } = await article.render();
+---
+
+<BaseLayout title={article.data.title} description={article.data.description}>
+  <article class="max-w-3xl mx-auto px-4 pt-12 pb-16">
+    <header class="mb-10">
+      <div class="text-sm mb-3" style="color: var(--color-accent);">
+        <a href="/kb">知识库</a> &middot; <a href={`/kb/${article.data.topic}`}>{article.data.topic}</a>
+      </div>
+      <h1 class="text-3xl md:text-4xl font-bold mb-3">{article.data.title}</h1>
+      <p class="text-lg" style="color: var(--color-text-secondary);">{article.data.description}</p>
+    </header>
+
+    <div class="prose dark:prose-invert max-w-none">
+      <Content />
+    </div>
+
+    <footer class="mt-12 pt-6 border-t" style="border-color: var(--color-border);">
+      <a href={`/kb/${article.data.topic}`} class="text-sm hover:underline" style="color: var(--color-accent);">
+        &larr; 返回 {article.data.topic} 主题
+      </a>
+    </footer>
+  </article>
+</BaseLayout>

@@ -1,0 +1,74 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+
+const phases = [
+  {
+    title: "第一阶段：编程基础",
+    items: ["Python 基础语法", "SQL 高级查询", "Shell 脚本", "Git 版本控制", "Linux 常用命令"],
+  },
+  {
+    title: "第二阶段：大数据基础",
+    items: ["Hadoop 生态概览", "HDFS 分布式文件系统", "MapReduce 编程模型", "Hive 数据仓库", "HBase 列式存储"],
+  },
+  {
+    title: "第三阶段：计算引擎",
+    items: ["Spark Core / SQL", "Spark Streaming", "Flink DataStream / Table API", "Kafka 原理与实践", "ZooKeeper 协调服务"],
+  },
+  {
+    title: "第四阶段：数据工程",
+    items: ["数据仓库建模（星型/雪花）", "数据湖（Iceberg/Hudi）", "工作流调度（Airflow/DolphinScheduler）", "数据质量与治理", "ETL 工具（DataX/SeaTunnel）"],
+  },
+  {
+    title: "第五阶段：AI 基础",
+    items: ["数学基础（线代/概率）", "机器学习算法", "深度学习框架（PyTorch）", "特征工程", "模型评估与调优"],
+  },
+  {
+    title: "第六阶段：LLM 应用",
+    items: ["Transformer 架构", "Prompt Engineering", "RAG 系统", "Agent 开发", "Fine-tuning 微调"],
+  },
+  {
+    title: "第七阶段：MLOps",
+    items: ["模型部署（Triton/TorchServe）", "特征存储（Feast）", "模型监控与漂移检测", "A/B 实验平台", "CI/CD for ML"],
+  },
+];
+---
+
+<BaseLayout>
+  <div class="max-w-4xl mx-auto px-4 pt-12 pb-16">
+    <h1 class="text-3xl font-bold mb-2">学习路线图</h1>
+    <p class="mb-10" style="color: var(--color-text-secondary);">
+      从数据工程师到 AI 开发者的系统学习路径
+    </p>
+
+    <div class="relative">
+      {/* Timeline line */}
+      <div class="absolute left-4 md:left-8 top-0 bottom-0 w-px" style="background-color: var(--color-border);"></div>
+
+      <div class="space-y-10">
+        {phases.map((phase, i) => (
+          <div class="relative pl-12 md:pl-20">
+            {/* Timeline dot */}
+            <div
+              class="absolute left-2 md:left-6 w-5 h-5 rounded-full border-4 z-10"
+              style="border-color: var(--color-accent); background-color: var(--color-bg);"
+            ></div>
+
+            <div class="p-6 rounded-xl border" style="border-color: var(--color-border); background-color: var(--color-bg-secondary);">
+              <h2 class="text-lg font-semibold mb-3">{phase.title}</h2>
+              <div class="flex flex-wrap gap-2">
+                {phase.items.map((item) => (
+                  <span
+                    class="px-3 py-1 rounded-full text-sm"
+                    style="background-color: var(--color-bg); color: var(--color-text-secondary); border: 1px solid var(--color-border);"
+                  >
+                    {item}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+</BaseLayout>

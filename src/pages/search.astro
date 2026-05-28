@@ -1,0 +1,91 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { getCollection } from "astro:content";
+
+const blogPosts = (await getCollection("blog")).filter((p) => !p.data.draft);
+const kbArticles = (await getCollection("kb")).filter((p) => !p.data.draft);
+
+const allItems = [
+  ...blogPosts.map((p) => ({
+    title: p.data.title,
+    description: p.data.description,
+    url: `/blog/${p.slug}`,
+    type: "博客",
+    topic: p.data.topic,
+    tags: p.data.tags,
+    date: p.data.date,
+  })),
+  ...kbArticles.map((p) => ({
+    title: p.data.title,
+    description: p.data.description,
+    url: `/kb/${p.data.topic}/${p.slug}`,
+    type: "知识库",
+    topic: p.data.topic,
+    tags: p.data.tags,
+    date: p.data.date,
+  })),
+].sort((a, b) => b.date.getTime() - a.date.getTime());
+---
+
+<BaseLayout>
+  <div class="max-w-3xl mx-auto px-4 pt-12 pb-16">
+    <h1 class="text-3xl font-bold mb-2">搜索</h1>
+    <p class="mb-8" style="color: var(--color-text-secondary);">
+      共 {allItems.length} 篇文章，按发布日期排序
+    </p>
+
+    <input
+      type="text"
+      id="search-input"
+      placeholder="输入关键词搜索文章..."
+      class="w-full px-4 py-3 rounded-lg border mb-8 text-base focus:outline-none focus:ring-2"
+      style="border-color: var(--color-border); background-color: var(--color-bg-secondary); color: var(--color-text);"
+    />
+
+    <div id="search-results">
+      {allItems.map((item) => (
+        <a
+          href={item.url}
+          class="search-item block p-4 rounded-lg border mb-3 hover:shadow-sm transition-all"
+          style="border-color: var(--color-border); background-color: var(--color-bg-secondary);"
+          data-title={item.title}
+          data-desc={item.description}
+          data-tags={item.tags.join(" ")}
+        >
+          <div class="flex items-center gap-2 mb-1">
+            <span class="text-xs px-2 py-0.5 rounded-full" style="background-color: var(--color-accent); color: white;">{item.type}</span>
+            <span class="text-xs" style="color: var(--color-text-secondary);">{item.topic}</span>
+          </div>
+          <div class="font-medium">{item.title}</div>
+          <div class="text-sm" style="color: var(--color-text-secondary);">{item.description}</div>
+        </a>
+      ))}
+    </div>
+
+    <p id="no-results" class="hidden text-center py-8" style="color: var(--color-text-secondary);">
+      没有找到匹配的文章
+    </p>
+  </div>
+</BaseLayout>
+
+<script>
+  const input = document.getElementById("search-input") as HTMLInputElement;
+  const items = document.querySelectorAll(".search-item");
+  const noResults = document.getElementById("no-results")!;
+
+  input.addEventListener("input", () => {
+    const q = input.value.toLowerCase().trim();
+    let visible = 0;
+
+    items.forEach((el) => {
+      const title = (el.getAttribute("data-title") || "").toLowerCase();
+      const desc = (el.getAttribute("data-desc") || "").toLowerCase();
+      const tags = (el.getAttribute("data-tags") || "").toLowerCase();
+      const match = !q || title.includes(q) || desc.includes(q) || tags.includes(q);
+      (el as HTMLElement).style.display = match ? "block" : "none";
+      if (match) visible++;
+    });
+
+    noResults.style.display = q && visible === 0 ? "block" : "none";
+  });
+</script>

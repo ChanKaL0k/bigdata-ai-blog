@@ -1,0 +1,29 @@
+---
+import ThemeToggle from "./ThemeToggle";
+
+const navLinks = [
+  { href: "/blog", label: "博客" },
+  { href: "/kb", label: "知识库" },
+  { href: "/roadmap", label: "学习路线" },
+];
+---
+
+<header class="sticky top-0 z-50 backdrop-blur border-b" style="background-color: var(--color-bg); border-color: var(--color-border);">
+  <nav class="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
+    <a href="/" class="text-xl font-bold hover:opacity-80 transition-opacity" style="color: var(--color-accent);">
+      BigData & AI
+    </a>
+    <div class="flex items-center gap-1">
+      {navLinks.map((link) => (
+        <a
+          href={link.href}
+          class="px-3 py-2 rounded-lg text-sm font-medium transition-colors hover:bg-gray-100 dark:hover:bg-gray-800"
+          style="color: var(--color-text-secondary);"
+        >
+          {link.label}
+        </a>
+      ))}
+      <ThemeToggle client:load />
+    </div>
+  </nav>
+</header>

@@ -1,0 +1,67 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { getCollection } from "astro:content";
+
+const allPosts = (await getCollection("blog"))
+  .filter((p) => !p.data.draft)
+  .sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
+
+const allTags = [...new Set(allPosts.flatMap((p) => p.data.tags))].sort();
+
+const selectedTag = Astro.url.searchParams.get("tag");
+const posts = selectedTag
+  ? allPosts.filter((p) => p.data.tags.includes(selectedTag))
+  : allPosts;
+---
+
+<BaseLayout>
+  <div class="max-w-4xl mx-auto px-4 pt-12 pb-16">
+    <h1 class="text-3xl font-bold mb-2">博客</h1>
+    <p class="mb-8" style="color: var(--color-text-secondary);">
+      技术文章与学习笔记 {selectedTag && <span>— 标签: <strong>{selectedTag}</strong> <a href="/blog" class="underline">清除</a></span>}
+    </p>
+
+    <!-- Tag Filter -->
+    <div class="flex flex-wrap gap-2 mb-8">
+      {allTags.map((tag) => (
+        <a
+          href={`/blog?tag=${tag}`}
+          class={`px-3 py-1 rounded-full text-sm transition-colors border ${
+            selectedTag === tag
+              ? "text-white border-transparent"
+              : "hover:bg-gray-100 dark:hover:bg-gray-800"
+          }`}
+          style={selectedTag === tag ? "background-color: var(--color-accent);" : `border-color: var(--color-border); color: var(--color-text-secondary);`}
+        >
+          {tag}
+        </a>
+      ))}
+    </div>
+
+    <!-- Post List -->
+    <div class="space-y-6">
+      {posts.map((post) => (
+        <article class="p-6 rounded-xl border" style="border-color: var(--color-border); background-color: var(--color-bg-secondary);">
+          <div class="text-xs mb-2" style="color: var(--color-accent);">
+            {post.data.topic} &middot; {post.data.date.toLocaleDateString("zh-CN")}
+          </div>
+          <a href={`/blog/${post.slug}`}>
+            <h2 class="text-xl font-semibold mb-2 hover:underline">{post.data.title}</h2>
+          </a>
+          <p class="mb-3 text-sm" style="color: var(--color-text-secondary);">{post.data.description}</p>
+          <div class="flex flex-wrap gap-1">
+            {post.data.tags.map((tag) => (
+              <a href={`/blog?tag=${tag}`} class="text-xs px-2 py-0.5 rounded-full" style="background-color: var(--color-bg); color: var(--color-text-secondary);">
+                #{tag}
+              </a>
+            ))}
+          </div>
+        </article>
+      ))}
+    </div>
+
+    {posts.length === 0 && (
+      <p style="color: var(--color-text-secondary);">该标签下暂无文章。</p>
+    )}
+  </div>
+</BaseLayout>
