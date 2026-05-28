@@ -3,8 +3,10 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 import { getCollection } from "astro:content";
 
 export async function getStaticPaths() {
+  const allTopics = ["spark", "flink", "kafka", "ai-ml", "llm", "engineering"];
   const articles = await getCollection("kb");
-  const topics = [...new Set(articles.map((a) => a.data.topic))];
+  const existingTopics = [...new Set(articles.map((a) => a.data.topic))];
+  const topics = [...new Set([...allTopics, ...existingTopics])];
   return topics.map((topic) => ({ params: { topic } }));
 }
 
