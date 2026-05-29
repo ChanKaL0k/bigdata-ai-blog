@@ -1,17 +1,16 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 interface Props {
   slug: string;
 }
 
 export default function ViewCounter({ slug }: Props) {
-  const [count, setCount] = useState<number | null>(null);
+  const [count, setCount] = useState<number | null | undefined>(undefined);
 
-  useEffect(() => {
+  const recordView = useCallback(() => {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 5000);
 
-    // Increment view count on load
     fetch(`/api/views/${slug}`, {
       method: "POST",
       signal: controller.signal,
@@ -22,7 +21,31 @@ export default function ViewCounter({ slug }: Props) {
       .finally(() => clearTimeout(timer));
   }, [slug]);
 
-  if (count === null) return null;
+  useEffect(() => {
+    recordView();
+  }, [recordView]);
+
+  // Loading — show placeholder
+  if (count === undefined) {
+    return (
+      <span className="text-sm opacity-50" style={{ color: "var(--color-text-secondary)" }}>
+        ··· 次阅读
+      </span>
+    );
+  }
+
+  // API failed — show retry
+  if (count === null) {
+    return (
+      <button
+        onClick={recordView}
+        className="text-sm underline cursor-pointer"
+        style={{ color: "var(--color-text-secondary)" }}
+      >
+        获取阅读量
+      </button>
+    );
+  }
 
   return (
     <span className="text-sm" style={{ color: "var(--color-text-secondary)" }}>
