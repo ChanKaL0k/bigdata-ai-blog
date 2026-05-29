@@ -1,34 +1,20 @@
 export { renderers } from '../../../renderers.mjs';
 
 const prerender = false;
-function buildUrl(path) {
-  return `${process.env.KV_REST_API_URL}${path}`;
-}
-function headers() {
-  return { Authorization: `Bearer ${process.env.KV_REST_API_TOKEN}` };
-}
+const counts = {};
 async function GET({ params }) {
-  try {
-    const res = await fetch(buildUrl(`/get/views:${params.slug}`), { headers: headers() });
-    if (!res.ok) throw new Error(`KV status ${res.status}`);
-    const data = await res.json();
-    return Response.json({ count: parseInt(data.result || "0", 10) || 0 });
-  } catch {
-    return Response.json({ count: 0 });
-  }
+  const count = counts[params.slug] || 0;
+  return new Response(JSON.stringify({ count }), {
+    status: 200,
+    headers: { "Content-Type": "application/json" }
+  });
 }
 async function POST({ params }) {
-  try {
-    const res = await fetch(buildUrl(`/incr/views:${params.slug}`), {
-      method: "POST",
-      headers: headers()
-    });
-    if (!res.ok) throw new Error(`KV status ${res.status}`);
-    const data = await res.json();
-    return Response.json({ count: data.result });
-  } catch {
-    return Response.json({ error: "Failed" }, { status: 500 });
-  }
+  counts[params.slug] = (counts[params.slug] || 0) + 1;
+  return new Response(JSON.stringify({ count: counts[params.slug] }), {
+    status: 200,
+    headers: { "Content-Type": "application/json" }
+  });
 }
 
 const _page = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
