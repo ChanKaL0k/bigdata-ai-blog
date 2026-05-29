@@ -1,34 +1,37 @@
 const KV_URL = process.env.KV_REST_API_URL;
 const KV_TOKEN = process.env.KV_REST_API_TOKEN;
 
-function kv(path) {
+async function kv(path, method = "GET") {
   return fetch(`${KV_URL}${path}`, {
+    method,
     headers: { Authorization: `Bearer ${KV_TOKEN}` },
   });
 }
 
-export async function GET(request, { params }) {
-  if (!KV_URL || !KV_TOKEN) {
-    return Response.json({ count: 0, error: "KV not configured" });
-  }
-  try {
-    const res = await kv(`/get/views:${params.slug}`);
-    const data = await res.json();
-    return Response.json({ count: parseInt(data.result || "0", 10) || 0 });
-  } catch {
-    return Response.json({ count: 0 });
-  }
-}
+export default async function handler(req, res) {
+  const { slug } = req.query;
+  const method = req.method;
 
-export async function POST(request, { params }) {
   if (!KV_URL || !KV_TOKEN) {
-    return Response.json({ error: "KV not configured" }, { status: 500 });
+    res.status(200).json({ count: 0, error: "KV not configured" });
+    return;
   }
+
   try {
-    const res = await kv(`/incr/views:${params.slug}`);
-    const data = await res.json();
-    return Response.json({ count: data.result });
-  } catch {
-    return Response.json({ error: "Failed" }, { status: 500 });
+    if (method === "GET") {
+      const r = await kv(`/get/views:${slug}`);
+      const data = await r.json();
+      return res.status(200).json({ count: parseInt(data.result || "0", 10) || 0 });
+    }
+
+    if (method === "POST") {
+      const r = await kv(`/incr/views:${slug}`, "POST");
+      const data = await r.json();
+      return res.status(200).json({ count: data.result });
+    }
+
+    res.status(405).json({ error: "Method not allowed" });
+  } catch (e) {
+    res.status(500).json({ error: "Failed" });
   }
 }
