@@ -51,6 +51,9 @@ const { Content } = await article.render();
             { label: "OOM 与内存分析", url: "/spark-ui-lab/oom" },
             { label: "GC 耗时诊断", url: "/spark-ui-lab/slow-tasks" },
           ],
+          "spark-small-files": [
+            { label: "小文件问题诊断", url: "/spark-ui-lab/small-files" },
+          ],
         };
         const links = practiceLinks[article.slug];
         if (!links) return null;
