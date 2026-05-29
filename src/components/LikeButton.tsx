@@ -7,55 +7,60 @@ const STORAGE_KEY = "blog-liked";
 export default function LikeButton() {
   const [count, setCount] = useState(0);
   const [liked, setLiked] = useState(false);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const alreadyLiked = localStorage.getItem(STORAGE_KEY) === "true";
     setLiked(alreadyLiked);
 
-    fetch(`https://api.countapi.xyz/get/${NAMESPACE}/${KEY}`)
+    // Fetch count with a short timeout so the UI doesn't hang
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 5000);
+
+    fetch(`https://api.countapi.xyz/get/${NAMESPACE}/${KEY}`, {
+      signal: controller.signal,
+    })
       .then((r) => r.json())
       .then((data) => {
         setCount(data.value || 0);
-        setLoading(false);
       })
-      .catch(() => setLoading(false));
+      .catch(() => {
+        // Keep count at 0 if API unreachable
+      })
+      .finally(() => clearTimeout(timer));
   }, []);
 
   const handleClick = async () => {
     if (liked) {
-      // Unlike
       setLiked(false);
       localStorage.removeItem(STORAGE_KEY);
-      const newCount = Math.max(0, count - 1);
-      setCount(newCount);
-      // Try to sync with API
+      setCount((c) => Math.max(0, c - 1));
+      // Best-effort decrement
       try {
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), 3000);
         await fetch(
-          `https://api.countapi.xyz/hit/${NAMESPACE}/${KEY}?amount=-1`
+          `https://api.countapi.xyz/hit/${NAMESPACE}/${KEY}?amount=-1`,
+          { signal: controller.signal }
         );
-      } catch {
-        // If sync fails, local state is still correct
-      }
+        clearTimeout(timer);
+      } catch {}
     } else {
-      // Like
       setLiked(true);
       localStorage.setItem(STORAGE_KEY, "true");
-      const newCount = count + 1;
-      setCount(newCount);
+      setCount((c) => c + 1);
       try {
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), 3000);
         const res = await fetch(
-          `https://api.countapi.xyz/hit/${NAMESPACE}/${KEY}`
+          `https://api.countapi.xyz/hit/${NAMESPACE}/${KEY}`,
+          { signal: controller.signal }
         );
         const data = await res.json();
         setCount(data.value);
-      } catch {
-        // Keep optimistic count if API fails
-      }
+        clearTimeout(timer);
+      } catch {}
     }
   };
-
-  if (loading) return null;
 
   return (
     <button
