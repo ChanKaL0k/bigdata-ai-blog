@@ -1,48 +1,41 @@
-import { kv } from '@vercel/kv';
 export { renderers } from '../../renderers.mjs';
 
-const LIKE_KEY = "site-likes";
 const prerender = false;
+const KEY = "site-likes";
+function buildUrl(path) {
+  return `${process.env.KV_REST_API_URL}${path}`;
+}
+function headers() {
+  return { Authorization: `Bearer ${process.env.KV_REST_API_TOKEN}` };
+}
 async function GET() {
   try {
-    const count = await kv.get(LIKE_KEY) || 0;
-    return new Response(JSON.stringify({ count }), {
-      status: 200,
-      headers: { "Content-Type": "application/json" }
-    });
+    const res = await fetch(buildUrl(`/get/${KEY}`), { headers: headers() });
+    if (!res.ok) throw new Error(`KV status ${res.status}`);
+    const data = await res.json();
+    return Response.json({ count: parseInt(data.result || "0", 10) || 0 });
   } catch {
-    return new Response(JSON.stringify({ count: 0 }), {
-      status: 200,
-      headers: { "Content-Type": "application/json" }
-    });
+    return Response.json({ count: 0 });
   }
 }
 async function POST() {
   try {
-    const count = await kv.incr(LIKE_KEY);
-    return new Response(JSON.stringify({ count }), {
-      status: 200,
-      headers: { "Content-Type": "application/json" }
-    });
+    const res = await fetch(buildUrl(`/incr/${KEY}`), { method: "POST", headers: headers() });
+    if (!res.ok) throw new Error(`KV status ${res.status}`);
+    const data = await res.json();
+    return Response.json({ count: data.result });
   } catch {
-    return new Response(JSON.stringify({ error: "Failed to record like" }), {
-      status: 500,
-      headers: { "Content-Type": "application/json" }
-    });
+    return Response.json({ error: "Failed" }, { status: 500 });
   }
 }
 async function DELETE() {
   try {
-    const count = await kv.decr(LIKE_KEY);
-    return new Response(JSON.stringify({ count: Math.max(0, count) }), {
-      status: 200,
-      headers: { "Content-Type": "application/json" }
-    });
+    const res = await fetch(buildUrl(`/decr/${KEY}`), { method: "POST", headers: headers() });
+    if (!res.ok) throw new Error(`KV status ${res.status}`);
+    const data = await res.json();
+    return Response.json({ count: Math.max(0, data.result) });
   } catch {
-    return new Response(JSON.stringify({ error: "Failed to unlike" }), {
-      status: 500,
-      headers: { "Content-Type": "application/json" }
-    });
+    return Response.json({ error: "Failed" }, { status: 500 });
   }
 }
 

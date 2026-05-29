@@ -3,21 +3,20 @@ import { useEffect, useState } from "react";
 const STORAGE_KEY = "blog-liked";
 
 export default function LikeButton() {
-  const [count, setCount] = useState(0);
+  const [count, setCount] = useState<number | null>(null);
   const [liked, setLiked] = useState(false);
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    const alreadyLiked = localStorage.getItem(STORAGE_KEY) === "true";
-    setLiked(alreadyLiked);
+    setLiked(localStorage.getItem(STORAGE_KEY) === "true");
 
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 5000);
 
     fetch("/api/like", { signal: controller.signal })
       .then((r) => r.json())
-      .then((data) => setCount(data.count || 0))
-      .catch(() => {})
+      .then((data) => setCount(data.count ?? 0))
+      .catch(() => setCount((c) => (c === null ? 0 : c)))
       .finally(() => clearTimeout(timer));
   }, []);
 
@@ -93,7 +92,7 @@ export default function LikeButton() {
           border: liked ? "none" : "1px solid var(--color-border)",
         }}
       >
-        {count}
+        {count === null ? "···" : count}
       </span>
     </button>
   );
