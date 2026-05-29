@@ -223,7 +223,9 @@ val fileStats = spark.read
 
 小文件问题在 Spark UI 中有非常明显的特征。来模拟器中走一遍诊断流程。
 
-> 🖥️ 打开 **[Spark UI Lab — 小文件问题场景](/spark-ui-lab/small-files)**。
+<p class="spark-lab-cta">
+🖥️ 打开 <a href="/spark-ui-lab/small-files" target="_blank">Spark UI Lab — 小文件问题场景</a>，在新标签页中打开后跟着步骤操作。
+</p>
 
 ### 诊断流程（5 步）
 

@@ -78,7 +78,9 @@ Storage 和 Execution 之间可以互相借用：
 
 理解了内存划分后，来模拟器中看一个真实的 OOM 场景。
 
-> 🖥️ 打开 **[Spark UI Lab — OOM 场景](/spark-ui-lab/oom)** 和 **[慢任务场景](/spark-ui-lab/slow-tasks)**。
+<p class="spark-lab-cta">
+🖥️ 打开 <a href="/spark-ui-lab/oom" target="_blank">Spark UI Lab — OOM 场景</a> 和 <a href="/spark-ui-lab/slow-tasks" target="_blank">慢任务场景</a>，在新标签页中打开后跟着步骤操作。
+</p>
 
 ### OOM 诊断流程（5 步）
 

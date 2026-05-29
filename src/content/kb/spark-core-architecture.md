@@ -92,7 +92,9 @@ Task 完成后 Driver 收集结果，触发下一个 Stage
 
 理解了 Driver 调度 Task 和 Executor 执行 Task 的机制后，来模拟器中体验一下当某些 Task 异常缓慢时 Spark UI 长什么样。
 
-> 🖥️ 打开 **[Spark UI Lab — GC 耗时 / 慢任务](/spark-ui-lab/slow-tasks)**。
+<p class="spark-lab-cta">
+🖥️ 打开 <a href="/spark-ui-lab/slow-tasks" target="_blank">Spark UI Lab — GC 耗时 / 慢任务</a>，在新标签页中打开后跟着步骤操作。
+</p>
 
 ### Step by Step
 

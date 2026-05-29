@@ -53,7 +53,9 @@ override def write(records: Iterator[Product2[K, V]]): Unit = {
 
 读完原理，来模拟器中动手实践。
 
-> 🖥️ 打开 **[Spark UI Lab — 数据倾斜场景](/spark-ui-lab/data-skew)** 和 **[大量 Shuffle 场景](/spark-ui-lab/shuffle-heavy)**，跟着步骤走。
+<p class="spark-lab-cta">
+🖥️ 打开 <a href="/spark-ui-lab/data-skew" target="_blank">Spark UI Lab — 数据倾斜场景</a> 和 <a href="/spark-ui-lab/shuffle-heavy" target="_blank">大量 Shuffle 场景</a>，在新标签页中打开后跟着步骤操作。
+</p>
 
 ### 诊断数据倾斜（2 分钟）
 

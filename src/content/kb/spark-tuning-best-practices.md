@@ -120,7 +120,9 @@ GC 问题通常表现为：Task 内出现大量 GC 停顿，Executor 日志报 G
 
 本文涉及两种常见故障，来模拟器中逐一定位。
 
-> 🖥️ 打开 **[Spark UI Lab — 数据倾斜](/spark-ui-lab/data-skew)** 和 **[OOM 场景](/spark-ui-lab/oom)**。
+<p class="spark-lab-cta">
+🖥️ 打开 <a href="/spark-ui-lab/data-skew" target="_blank">Spark UI Lab — 数据倾斜</a> 和 <a href="/spark-ui-lab/oom" target="_blank">OOM 场景</a>，在新标签页中打开后跟着步骤操作。
+</p>
 
 ### 排查数据倾斜（3 步）
 
