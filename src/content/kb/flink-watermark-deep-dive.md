@@ -4,6 +4,7 @@ description: "理解 Flink 事件时间、Watermark 生成策略、处理迟到�
 date: 2026-05-20
 tags: [flink, watermark, 流处理, 事件时间]
 topic: flink
+order: 1
 ---
 
 Flink 的事件时间和 Watermark 是流处理中理解门槛最高但也最重要的概念。本文分享我在生产环境踩过的坑和总结的最佳实践。

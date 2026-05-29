@@ -4,6 +4,7 @@ description: "手把手带你实现一个文档问答 RAG 系统：文档切分�
 date: 2026-05-15
 tags: [rag, llm, embedding, 向量数据库, langchain]
 topic: llm
+order: 1
 ---
 
 RAG（Retrieval-Augmented Generation）是目前 LLM 应用最主流的范式。本文从零实现一个文档问答系统，帮助你理解 RAG 的核心原理。

@@ -4,6 +4,7 @@ description: "深入理解 Spark Shuffle 机制，从 Hash Shuffle 到 Sort Shuf
 date: 2026-05-25
 tags: [spark, shuffle, 性能调优, 大数据]
 topic: spark
+order: 6
 ---
 
 Spark Shuffle 是分布式计算中最核心也最容易成为瓶颈的环节。本文从原理出发，梳理 Shuffle 的演进历程和调优实践。
