@@ -1,6 +1,6 @@
 ---
-title: "Spark 内存管理详解"
-description: "堆内堆外内存的区别，统一内存管理机制（UnifiedMemoryManager），Storage 和 Execution 内存的动态抢占。"
+title: "OOM 排查与内存调优：Spark 内存管理详解"
+description: "堆内堆外内存的区别，统一内存管理机制（UnifiedMemoryManager），Storage 和 Execution 内存的动态抢占。配合 Spark UI Lab 手把手排查 OOM。"
 date: 2026-05-29
 tags: [spark, 内存管理, 堆内内存, 堆外内存, 调优]
 topic: spark
@@ -73,3 +73,37 @@ Storage 和 Execution 之间可以互相借用：
 - 开启堆外内存可显著减少 GC 压力，建议设置 `spark.memory.offHeap.size` 为 executor 内存的 10%-20%
 - 监控 Storage/Execution 的使用比例，合理调整 `spark.memory.storageFraction`
 - 大数据量 join 操作优先考虑 Broadcast Join（小表广播）减少 Shuffle
+
+## 实战诊断：在 Spark UI Lab 中排查 OOM
+
+理解了内存划分后，来模拟器中看一个真实的 OOM 场景。
+
+> 🖥️ 打开 **[Spark UI Lab — OOM 场景](/spark-ui-lab/oom)** 和 **[慢任务场景](/spark-ui-lab/slow-tasks)**。
+
+### OOM 诊断流程（5 步）
+
+1. 进入 **OOM** 场景，看顶栏——应用状态为 🔴 **FAILED**，Duration 仅 8.5 min 就崩溃了
+2. 切换到 **Executors** 标签页：
+   - Executor 2 和 3 的 Memory Used 为 **2.0 GB / 2 GB** 和 **1.9 GB / 2 GB**——两个 Executor 内存几乎打满
+   - 对应的 Failed Tasks 各 **8 个**
+   - GC Time 分别为 **1.2 min** 和 **1.5 min**——说明 OOM 前经历了频繁的 Full GC
+3. 切换到 **Stages** 标签页，Stage 3 状态为 🔴 FAILED（16/32 tasks）。点击进入 Task 详情
+4. 滚动到 Task 16-31——Status 全是 FAILED，Errors 列显示 `OutOfMemoryError: Java heap space`
+5. 切换到 **Environment** 标签：
+   - `spark.executor.memory` = **2g**——明显太小
+   - `spark.memory.offHeap.enabled` = **false**——没有开堆外内存
+   - 对照本文"常见 OOM 场景"第 1 条：Shuffle 阶段 OOM
+
+### 对比慢任务场景（GC 耗时）
+
+切换到 **慢任务** 场景看 Executors 标签——Executors 的 Memory Used 也在 90%+，但状态仍是 ACTIVE（没有 FAILED）。这说明 OOM 的本质是内存使用超过了 JVM 的极限，而 GC 耗时是 OOM 的前兆——GC Time 先飙高，内存继续涨，最终 OOM。
+
+### 检测清单
+
+进入 OOM 场景后对照检查：
+- [ ] Executors 标签中是否有 FAILED 状态的 Executor？
+- [ ] Memory Used 是否接近或等于上限？
+- [ ] Stage 详情中是否有 Tasks 失败？
+- [ ] 失败的 Tasks 的 Errors 列是否显示 OutOfMemoryError？
+- [ ] `spark.executor.memory` 是否配置过小？
+- [ ] `spark.memory.offHeap.enabled` 是否未开启？

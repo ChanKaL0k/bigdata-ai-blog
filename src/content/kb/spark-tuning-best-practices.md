@@ -1,6 +1,6 @@
 ---
-title: "Spark 调优实战指南"
-description: "从资源配置、数据倾斜处理、算子选择、序列化、GC 调优等维度，总结生产环境 Spark 作业优化实战经验。"
+title: "数据倾斜与 OOM：Spark 性能调优实战指南"
+description: "从资源配置、数据倾斜处理、算子选择、序列化、GC 调优等维度，总结生产环境 Spark 作业优化实战经验。配合 Spark UI Lab 手把手排查数据倾斜和 OOM。"
 date: 2026-05-29
 tags: [spark, 调优, 数据倾斜, 序列化, GC]
 topic: spark
@@ -115,3 +115,35 @@ GC 问题通常表现为：Task 内出现大量 GC 停顿，Executor 日志报 G
 - 写入前 `repartition` / `coalesce` 控制分区数
 - 使用 Delta Lake / Iceberg 的小文件合并功能
 - 调整 `spark.sql.files.maxPartitionBytes` 控制分区大小
+
+## 实战诊断：在 Spark UI Lab 中排查数据倾斜与 OOM
+
+本文涉及两种常见故障，来模拟器中逐一定位。
+
+> 🖥️ 打开 **[Spark UI Lab — 数据倾斜](/spark-ui-lab/data-skew)** 和 **[OOM 场景](/spark-ui-lab/oom)**。
+
+### 排查数据倾斜（3 步）
+
+1. 在 **数据倾斜** 场景中，进入 **Stages** 标签页。注意 Stage 3 的 Duration（8.2 min）——远高于其他 Stage（约 1-2 min）
+2. 点击 Stage 3 进入 Task 详情。观察"Shuffle Read"列：
+   - Task 23：**2.1 GB** 🔴
+   - 其余 Task：40-80 MB
+   - 差距 **38 倍**，这就是本文 2.1 节讲的倾斜特征
+3. 去看 **Environment** 标签——`spark.sql.adaptive.skewJoin.enabled` = **false**。打开这个配置就能让 AQE 自动拆分倾斜分区，对应本文 2.2 节的方案
+
+### 排查 OOM（3 步）
+
+1. 切换到 **OOM** 场景，进入 **Executors** 标签页
+2. Executor 2 和 Executor 3 的状态为 🔴 **FAILED**，Memory Used 接近 100%
+3. 进入 **Stages** 标签，点击 Stage 3（FAILED）进入 Task 详情——滚动查看 Errors 列，看到 `OutOfMemoryError: Java heap space`
+
+### 自我检测
+
+进入 Spark UI Lab 后，不看本文，你能说出：
+- 数据倾斜在 Stage 详情中看哪两列？
+- OOM 在 Executors 页面看哪几个指标？
+- 这两个问题的快捷键解决方案分别是什么？
+
+## 六（续）、小文件问题
+
+详见《[小文件问题诊断](/kb/spark/spark-small-files)》专题文章。

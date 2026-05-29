@@ -1,6 +1,6 @@
 ---
-title: "Spark Shuffle 原理与调优实践"
-description: "深入理解 Spark Shuffle 机制，从 Hash Shuffle 到 Sort Shuffle 的演进，以及生产环境调优参数。"
+title: "数据倾斜与 Shuffle 诊断：Spark Shuffle 原理与调优实践"
+description: "深入理解 Spark Shuffle 机制，从 Hash Shuffle 到 Sort Shuffle 的演进。手把手带你在 Spark UI Lab 中定位数据倾斜和 Shuffle 瓶颈。"
 date: 2026-05-25
 tags: [spark, shuffle, 性能调优, 大数据]
 topic: spark
@@ -48,6 +48,34 @@ override def write(records: Iterator[Product2[K, V]]): Unit = {
 | `spark.shuffle.file.buffer` | 32KB | 大内存可调到 64KB-128KB |
 | `spark.reducer.maxSizeInFlight` | 48MB | Reduce 端同时拉取的数据量 |
 | `spark.shuffle.sort.bypassMergeThreshold` | 200 | 分区数少于此值时跳过排序，减少延迟 |
+
+## 实战诊断：在 Spark UI Lab 中定位 Shuffle 问题
+
+读完原理，来模拟器中动手实践。
+
+> 🖥️ 打开 **[Spark UI Lab — 数据倾斜场景](/spark-ui-lab/data-skew)** 和 **[大量 Shuffle 场景](/spark-ui-lab/shuffle-heavy)**，跟着步骤走。
+
+### 诊断数据倾斜（2 分钟）
+
+1. 切换场景到 **数据倾斜（Data Skew）**，点击 **Stages** 标签页
+2. 观察 Stage 3 的行——Shuffle Read 高达 **4.8 GB**，Duration 达到 **8.2 min**，已是异常信号
+3. **点击 Stage 3** 进入 Task 详情。这是关键页面：
+   - 滚动查找标注 🔴 的 Task 23——它的 Shuffle Read 为 **2.1 GB**
+   - 而其他 Task 仅 **40-80 MB**——差距高达 38 倍
+   - 这就是数据倾斜的典型特征：单个 Task 数据量远超平均
+4. 切换到 **Executors** 标签页，Executor 3 的 GC Time 是其他 Executor 的 **4 倍**（48s vs 10s）
+
+### 诊断大量 Shuffle（2 分钟）
+
+1. 切换到场景 **大量 Shuffle（Shuffle Heavy）**，看 **Stages** 标签
+2. Stage 2（SortMergeJoin）耗时 **19.2 min**，Shuffle Read 总计 **15 GB**
+3. 进入 **SQL** 标签页，展开查询计划——可以看到 `spill to disk: 8.4 GB`，说明内存不足以容纳 Shuffle 数据
+4. 切换到 **Environment** 标签，观察 `spark.sql.autoBroadcastJoinThreshold` 仅 **10 MB**——如果有一边表能裁剪到 < 10 MB，就可以避免这场 Shuffle
+
+### 你能回答吗？
+
+- Task 23 的 Shuffle Read 2.1 GB，其他 Task 平均多少？这个差距意味着什么？
+- SortMergeJoin 的 spill 8.4 GB 是怎么产生的？调整哪个参数可以缓解？
 
 ## 生产环境案例
 

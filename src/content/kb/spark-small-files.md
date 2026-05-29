@@ -1,6 +1,6 @@
 ---
-title: "Spark 小文件问题：从根因到治理方案"
-description: "小文件是 HDFS 和 Spark 作业中的常见性能杀手。本文深入分析小文件的形成原因、对计算和存储的影响，以及从源头到治理的完整解决方案。"
+title: "小文件问题诊断：Spark 小文件从根因到治理方案"
+description: "小文件是 HDFS 和 Spark 作业中的常见性能杀手。本文深入分析小文件的形成原因、对计算和存储的影响，配合 Spark UI Lab 手把手诊断小文件问题。"
 date: 2026-05-29
 tags: [spark, 小文件, hdfs, 性能优化, 数据治理]
 topic: spark
@@ -218,6 +218,39 @@ val fileStats = spark.read
 - **每分区文件数**：超过 500 触发告警
 - **平均文件大小**：小于 64 MB 关注，小于 1 MB 严重
 - **总文件数趋势**：日增长率超过 20% 需要排查
+
+## 实战诊断：在 Spark UI Lab 中识别小文件问题
+
+小文件问题在 Spark UI 中有非常明显的特征。来模拟器中走一遍诊断流程。
+
+> 🖥️ 打开 **[Spark UI Lab — 小文件问题场景](/spark-ui-lab/small-files)**。
+
+### 诊断流程（5 步）
+
+1. 进入场景后，看顶部的 **Summary Metrics**：Total Tasks 为 **1,648**，但 Memory Used 仅 1.2 GB / 4 GB（30%）——这说明内存消耗不大，但 Task 数量异常多
+2. 切换到 **Jobs** 标签——Job 0（textFile）耗时 **28 min**，但只处理了 48 MB 的总数据，明显不正常
+3. 进入 **Stages** 标签页：
+   - Stage 0（List Files）耗时 **8.2 分钟**——仅列出文件就花了这么久，说明目录下文件数量巨大
+   - Stage 1：**200 个 Tasks** 处理仅 **12 MB** 数据，平均每 Task 处理 **60 KB**
+   - Stage 3：**300 个 Tasks** 处理 **2.1 GB** Shuffle Read
+4. 点击 Stage 1 进入 Task 详情——注意"Input Size"列：每个 Task 的输入只有 **40-80 KB**。正常生产环境中，一个 Task 应处理 128 MB+ 的数据。**40 KB vs 128 MB，差了 3,000 倍**
+5. 切换到 **SQL** 标签页，展开查询计划——Scan text 阶段显示 `avg input per task: 40 KB`，`num tasks: 1200`。1200 个 Task 处理 48 MB，调度开销远超计算开销
+
+### 关键指标对比
+
+进入 Spark UI Lab 后，在 Stages 和 SQL 标签中找出以下数值，填入表格：
+
+| 指标 | 你看到的值 | 正常值 | 是否异常 |
+|------|-----------|--------|---------|
+| Stage 0（List Files）耗时 | ? | < 30 秒 | ? |
+| Stage 1 的 Tasks 数量 | ? | ~1（12 MB 只需 1 个 Task） | ? |
+| 每 Task 平均 Input Size | ? | 128 MB | ? |
+| Total Tasks（Summary） | ? | < 20（48 MB 总量） | ? |
+
+### 你能诊断吗？
+
+- Stage 0 为什么耗时 8.2 分钟？它实际在做什么工作？
+- 结合本文"解决方案"章节，你会优先建议用哪种手段（源头合并 / AQE / 后台合并）？为什么？
 
 ## 总结
 
