@@ -1,47 +1,45 @@
 import { useEffect, useState } from "react";
 
-const NAMESPACE = "bigdata-ai-blog";
-const KEY = "homepage-likes";
 const STORAGE_KEY = "blog-liked";
 
 export default function LikeButton() {
   const [count, setCount] = useState(0);
   const [liked, setLiked] = useState(false);
+  const [busy, setBusy] = useState(false);
 
   useEffect(() => {
     const alreadyLiked = localStorage.getItem(STORAGE_KEY) === "true";
     setLiked(alreadyLiked);
 
-    // Fetch count with a short timeout so the UI doesn't hang
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 5000);
 
-    fetch(`https://api.countapi.xyz/get/${NAMESPACE}/${KEY}`, {
-      signal: controller.signal,
-    })
+    fetch("/api/like", { signal: controller.signal })
       .then((r) => r.json())
-      .then((data) => {
-        setCount(data.value || 0);
-      })
-      .catch(() => {
-        // Keep count at 0 if API unreachable
-      })
+      .then((data) => setCount(data.count || 0))
+      .catch(() => {})
       .finally(() => clearTimeout(timer));
   }, []);
 
   const handleClick = async () => {
-    if (liked) {
+    if (busy) return;
+    setBusy(true);
+
+    const wasLiked = liked;
+
+    if (wasLiked) {
       setLiked(false);
       localStorage.removeItem(STORAGE_KEY);
       setCount((c) => Math.max(0, c - 1));
-      // Best-effort decrement
       try {
         const controller = new AbortController();
         const timer = setTimeout(() => controller.abort(), 3000);
-        await fetch(
-          `https://api.countapi.xyz/hit/${NAMESPACE}/${KEY}?amount=-1`,
-          { signal: controller.signal }
-        );
+        const res = await fetch("/api/like", {
+          method: "DELETE",
+          signal: controller.signal,
+        });
+        const data = await res.json();
+        if (data.count !== undefined) setCount(data.count);
         clearTimeout(timer);
       } catch {}
     } else {
@@ -51,20 +49,23 @@ export default function LikeButton() {
       try {
         const controller = new AbortController();
         const timer = setTimeout(() => controller.abort(), 3000);
-        const res = await fetch(
-          `https://api.countapi.xyz/hit/${NAMESPACE}/${KEY}`,
-          { signal: controller.signal }
-        );
+        const res = await fetch("/api/like", {
+          method: "POST",
+          signal: controller.signal,
+        });
         const data = await res.json();
-        setCount(data.value);
+        if (data.count !== undefined) setCount(data.count);
         clearTimeout(timer);
       } catch {}
     }
+
+    setBusy(false);
   };
 
   return (
     <button
       onClick={handleClick}
+      disabled={busy}
       className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg border text-sm font-medium transition-all ${
         liked
           ? "border-yellow-300 bg-yellow-50 dark:bg-yellow-900/15 hover:border-yellow-400"

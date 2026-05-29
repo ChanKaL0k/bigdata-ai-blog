@@ -1,5 +1,7 @@
 ---
 import BaseLayout from "../../layouts/BaseLayout.astro";
+import ViewCounter from "../../components/ViewCounter";
+import Giscus from "../../components/Giscus";
 import { getCollection } from "astro:content";
 
 export async function getStaticPaths() {
@@ -19,17 +21,20 @@ const { Content } = await post.render();
       </div>
       <h1 class="text-3xl md:text-4xl font-bold mb-3">{post.data.title}</h1>
       <p class="text-lg" style="color: var(--color-text-secondary);">{post.data.description}</p>
-      <div class="flex flex-wrap gap-2 mt-4">
+      <div class="flex flex-wrap items-center gap-2 mt-4">
         {post.data.tags.map((tag) => (
           <a href={`/blog?tag=${tag}`} class="text-xs px-2 py-1 rounded-full border" style="border-color: var(--color-border); color: var(--color-text-secondary);">
             #{tag}
           </a>
         ))}
+        <span class="ml-auto"><ViewCounter slug={post.slug} client:load /></span>
       </div>
     </header>
 
     <div class="prose dark:prose-invert max-w-none">
       <Content />
     </div>
+
+    <Giscus client:load />
   </article>
 </BaseLayout>
