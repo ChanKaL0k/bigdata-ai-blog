@@ -1,0 +1,29 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import SparkLabShell from "../../components/spark-ui-lab/SparkLabShell";
+import "../../styles/spark-ui.css";
+
+export async function getStaticPaths() {
+  const ids = ["data-skew", "slow-tasks", "oom", "small-files", "shuffle-heavy"];
+  return ids.map((id) => ({ params: { scenario: id } }));
+}
+
+const { scenario } = Astro.params;
+
+const labels: Record<string, string> = {
+  "data-skew": "数据倾斜",
+  "slow-tasks": "GC 耗时 / 慢任务",
+  "oom": "Executor 内存溢出",
+  "small-files": "小文件问题",
+  "shuffle-heavy": "大量 Shuffle",
+};
+---
+
+<BaseLayout title={`Spark UI Lab — ${labels[scenario] || scenario}`} description={`在模拟的 Spark UI 中学习诊断${labels[scenario] || scenario}问题`}>
+  <section class="max-w-7xl mx-auto px-4 pt-8 pb-16">
+    <div class="mb-6">
+      <a href="/spark-ui-lab" class="text-sm hover:underline" style="color: var(--color-accent);">&larr; 返回场景列表</a>
+    </div>
+    <SparkLabShell initialScenario={scenario} client:load />
+  </section>
+</BaseLayout>

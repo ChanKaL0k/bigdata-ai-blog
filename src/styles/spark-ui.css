@@ -1,0 +1,168 @@
+.spark-ui-simulator {
+  --spark-header-bg: #1a1f2b;
+  --spark-header-text: #e6e9ed;
+  --spark-header-subtext: #8c929d;
+  --spark-accent: #2490eb;
+  --spark-accent-hover: #1a7ad9;
+  --spark-bg: #ffffff;
+  --spark-tab-active-bg: #ffffff;
+  --spark-tab-inactive-bg: #e9ecef;
+  --spark-tab-inactive-text: #495057;
+  --spark-table-header-bg: #f8f9fa;
+  --spark-table-row-alt: #f9fafb;
+  --spark-table-border: #dee2e6;
+  --spark-table-text: #212529;
+  --spark-metric-label: #6c757d;
+  --spark-metric-value: #212529;
+  --spark-status-success: #1a7f37;
+  --spark-status-failed: #cf222e;
+  --spark-status-running: #9a6700;
+  --spark-annotation-critical: #cf222e;
+  --spark-annotation-warning: #d4a72c;
+  --spark-annotation-info: #2490eb;
+  --spark-font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --spark-font-mono: "SF Mono", "Fira Code", "Fira Mono", "Roboto Mono", monospace;
+
+  font-family: var(--spark-font);
+  color: var(--spark-table-text);
+  background: var(--spark-bg);
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.08);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.spark-ui-simulator a {
+  color: var(--spark-accent);
+  text-decoration: none;
+}
+.spark-ui-simulator a:hover {
+  text-decoration: underline;
+}
+
+/* Tables */
+.spark-ui-simulator table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+.spark-ui-simulator th {
+  text-align: left;
+  padding: 8px 6px;
+  background: var(--spark-table-header-bg);
+  border-bottom: 2px solid var(--spark-table-border);
+  font-weight: 600;
+  white-space: nowrap;
+  color: var(--spark-table-text);
+}
+.spark-ui-simulator td {
+  padding: 7px 6px;
+  border-bottom: 1px solid var(--spark-table-border);
+  white-space: nowrap;
+  vertical-align: top;
+}
+.spark-ui-simulator tbody tr:nth-child(even) {
+  background: var(--spark-table-row-alt);
+}
+
+/* Row highlighting */
+.spark-ui-simulator tbody tr.row-anomalous {
+  border-left: 3px solid var(--spark-annotation-critical);
+}
+.spark-ui-simulator tbody tr.row-anomalous td:first-child {
+  padding-left: 9px;
+}
+.spark-ui-simulator tbody tr.row-warning {
+  border-left: 3px solid var(--spark-annotation-warning);
+}
+.spark-ui-simulator tbody tr.row-warning td:first-child {
+  padding-left: 9px;
+}
+
+/* Annotation row (inserted below target row) */
+.spark-ui-simulator tr.annotation-row td {
+  padding: 12px 16px;
+  background: #fef2f2;
+  border-bottom: 1px solid var(--spark-annotation-critical);
+  white-space: normal;
+  font-size: 12px;
+}
+
+/* Cell highlight */
+.spark-ui-simulator td.cell-anomalous {
+  background: #fef2f2;
+  border-bottom: 2px dotted var(--spark-annotation-critical);
+}
+
+/* Status badges */
+.spark-ui-simulator .status-success { color: var(--spark-status-success); font-weight: 600; }
+.spark-ui-simulator .status-failed { color: var(--spark-status-failed); font-weight: 600; }
+.spark-ui-simulator .status-running { color: var(--spark-status-running); font-weight: 600; }
+
+/* Annotation callout */
+.spark-annotation-callout {
+  border-radius: 6px;
+  padding: 10px 14px;
+  margin: 8px 0;
+  font-size: 12px;
+  position: relative;
+}
+.spark-annotation-callout.critical {
+  border-left: 4px solid var(--spark-annotation-critical);
+  background: #fef2f2;
+}
+.spark-annotation-callout.warning {
+  border-left: 4px solid var(--spark-annotation-warning);
+  background: #fff8e1;
+}
+.spark-annotation-callout.info {
+  border-left: 4px solid var(--spark-annotation-info);
+  background: #e8f4fd;
+}
+.spark-annotation-callout .ann-title {
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+.spark-annotation-callout .ann-body {
+  color: #374151;
+  line-height: 1.6;
+}
+.spark-annotation-callout .ann-body code {
+  background: rgba(0, 0, 0, 0.08);
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-family: var(--spark-font-mono);
+  font-size: 11px;
+}
+
+/* Side annotation (position: "right") */
+.spark-annotation-side {
+  position: absolute;
+  right: -260px;
+  top: 0;
+  width: 240px;
+  z-index: 10;
+}
+@media (max-width: 1200px) {
+  .spark-annotation-side {
+    position: static;
+    width: 100%;
+    margin: 8px 0;
+  }
+}
+
+/* Scrollable table wrapper */
+.spark-table-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Fade-in animation */
+@keyframes spark-ann-fadein {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.spark-annotation-fade {
+  animation: spark-ann-fadein 0.25s ease-out;
+}

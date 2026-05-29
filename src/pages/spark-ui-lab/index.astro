@@ -1,0 +1,25 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import SparkLabShell from "../../components/spark-ui-lab/SparkLabShell";
+import "../../styles/spark-ui.css";
+---
+
+<BaseLayout title="Spark UI Lab — 交互式故障诊断模拟器" description="1:1 还原 Spark UI 界面，内置数据倾斜、OOM、慢任务、小文件、Shuffle 等典型故障场景，通过标注学习诊断技巧。">
+  <section class="max-w-7xl mx-auto px-4 pt-8 pb-16">
+    <div class="mb-8">
+      <h1 class="text-3xl font-bold mb-3">Spark UI Lab</h1>
+      <p style="color: var(--color-text-secondary); font-size: 15px; max-width: 700px;">
+        1:1 还原 Apache Spark Web UI 界面，内置 5 个典型故障场景。打开"显示标注"开关，学习如何通过指标发现数据倾斜、OOM、GC 耗时、小文件、Shuffle 瓶颈等常见问题。
+      </p>
+      <div class="flex gap-2 mt-3 flex-wrap">
+        <span class="text-xs px-2 py-0.5 rounded-full border" style="border-color: var(--color-border); color: var(--color-text-secondary);">数据倾斜</span>
+        <span class="text-xs px-2 py-0.5 rounded-full border" style="border-color: var(--color-border); color: var(--color-text-secondary);">OOM</span>
+        <span class="text-xs px-2 py-0.5 rounded-full border" style="border-color: var(--color-border); color: var(--color-text-secondary);">GC耗时</span>
+        <span class="text-xs px-2 py-0.5 rounded-full border" style="border-color: var(--color-border); color: var(--color-text-secondary);">小文件</span>
+        <span class="text-xs px-2 py-0.5 rounded-full border" style="border-color: var(--color-border); color: var(--color-text-secondary);">Shuffle</span>
+      </div>
+    </div>
+
+    <SparkLabShell client:load />
+  </section>
+</BaseLayout>

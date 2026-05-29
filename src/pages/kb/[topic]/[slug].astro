@@ -33,6 +33,48 @@ const { Content } = await article.render();
       <Content />
     </div>
 
+    {
+      (() => {
+        const practiceLinks = {
+          "spark-shuffle-guide": [
+            { label: "数据倾斜诊断", url: "/spark-ui-lab/data-skew" },
+            { label: "大量 Shuffle 分析", url: "/spark-ui-lab/shuffle-heavy" },
+          ],
+          "spark-tuning-best-practices": [
+            { label: "数据倾斜诊断", url: "/spark-ui-lab/data-skew" },
+            { label: "OOM 排查", url: "/spark-ui-lab/oom" },
+          ],
+          "spark-core-architecture": [
+            { label: "慢任务与 GC 分析", url: "/spark-ui-lab/slow-tasks" },
+          ],
+          "spark-memory-management": [
+            { label: "OOM 与内存分析", url: "/spark-ui-lab/oom" },
+            { label: "GC 耗时诊断", url: "/spark-ui-lab/slow-tasks" },
+          ],
+        };
+        const links = practiceLinks[article.slug];
+        if (!links) return null;
+        return (
+          <div class="mt-12 p-5 rounded-xl border" style="border-color: var(--color-accent); background-color: #e8f4fd;">
+            <div class="font-semibold mb-3" style="color: var(--spark-accent, #2490eb);">
+              🖥️ 在 Spark UI Lab 中练习诊断
+            </div>
+            <p class="text-sm mb-3" style="color: var(--color-text-secondary);">
+              在 1:1 还原的 Spark UI 模拟器中，尝试识别本文讲到的问题指标：
+            </p>
+            <div class="flex flex-wrap gap-2">
+              {links.map((link) => (
+                <a href={link.url} class="text-sm px-3 py-1.5 rounded-lg border transition-colors hover:no-underline font-medium cursor-pointer"
+                  style="border-color: var(--spark-accent, #2490eb); color: var(--spark-accent, #2490eb);">
+                  {link.label} &rarr;
+                </a>
+              ))}
+            </div>
+          </div>
+        );
+      })()
+    }
+
     <footer class="mt-12 pt-6 border-t" style="border-color: var(--color-border);">
       <a href={`/kb/${article.data.topic}`} class="text-sm hover:underline" style="color: var(--color-accent);">
         &larr; 返回 {article.data.topic} 主题
